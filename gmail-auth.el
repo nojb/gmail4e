@@ -1,3 +1,31 @@
+;;; gmail-auth.el -- part of gmail4e, a Gmail client for Emacs
+;;
+;; Copyright (C) 2016 Nicolas Ojeda Bar
+
+;; Author: Nicolas Ojeda Bar <n.oje.bar@gmail.com>
+;; Maintainer: Nicolas Ojeda Bar <n.oje.bar@gmail.com>
+
+;; This file is not part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; TODO
+
+;;; Code:
+
 (defconst gmail-auth-endpoint "https://accounts.google.com/o/oauth2/v2/auth"
   "Google OAuth2 authorization endpoint.")
 
@@ -11,7 +39,19 @@
 
 (defvar gmail-auth-code nil)
 
+(defvar gmail-auth-access-token nil)
+
+(defvar gmail-auth-refresh-token nil)
+
+(defvar gmail-auth-expires-in nil)
+
+(defvar gmail-auth-token-type nil)
+
 (defun gmail-auth-handle-token (access-token refresh-token expires-in token-type)
+  (setq gmail-auth-access-token access-token)
+  (setq gmail-auth-refresh-token refresh-token)
+  (setq gmail-auth-expires-in expires-in)
+  (setq gmail-auth-token-type token-type)
   (message "access-token: %s" access-token)
   (message "refresh-token: %s" refresh-token)
   (message "expires-in: %s" expires-in)
@@ -65,3 +105,5 @@
        ("response_type" "code")
        ("redirect_uri" ,(format "http://127.0.0.1:%d" gmail-auth-port))
        ("login_hint" ,login_hint))))))
+
+;; (gmail-auth-request-code '("https://www.googleapis.com/auth/gmail.readonly") user-mail-address)
