@@ -11,19 +11,30 @@
 
 (defvar gmail-auth-code nil)
 
-(defun gmail-auth-handle-token (status)
-  (switch-to-buffer (current-buffer)))
+(defun gmail-auth-handle-token (access-token refresh-token expires-in token-type)
+  (message "access-token: %s" access-token)
+  (message "refresh-token: %s" refresh-token)
+  (message "expires-in: %s" expires-in)
+  (message "token-type: %s" token-type))
 
 (defun gmail-auth-request-token ()
-  (let ((url-request-method "POST")
-        (url-request-extra-headers '(("Content-Type" . "application/x-www-form-urlencoded")))
-        (url-request-data (url-build-query-string
-                           `(("code" ,gmail-auth-code)
-                             ("client_id" ,gmail-auth-client-id)
-                             ("client_secret" ,gmail-auth-client-secret)
-                             ("redirect_uri" ,(format "http://127.0.0.1:%d" gmail-auth-port))
-                             ("grant_type" "authorization_code")))))
-    (url-retrieve gmail-auth-token-endpoint 'gmail-auth-handle-token)))
+  (request
+   gmail-auth-token-endpoint
+   :type "POST"
+   :data `(("code" . ,gmail-auth-code)
+           ("client_id" . ,gmail-auth-client-id)
+           ("client_secret" . ,gmail-auth-client-secret)
+           ("redirect_uri" . ,(format "http://127.0.0.1:%d" gmail-auth-port))
+           ("grant_type" . "authorization_code"))
+   :parser 'json-read
+   :success (function*
+             (lambda (&key data &allow-other-keys)
+               (print data)
+               (let ((access-token (cdr (assoc 'access_token data)))
+                     (refresh-token (cdr (assoc 'refresh_token data)))
+                     (expires-in (cdr (assoc 'expires_in data)))
+                     (token-type (cdr (assoc 'token_type data))))
+                 (gmail-auth-handle-token access-token refresh-token expires-in token-type))))))
 
 (defun gmail-auth-handle-code (code)
   (gmail-auth-request-token code))
