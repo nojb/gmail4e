@@ -40,16 +40,20 @@
   (use-local-map gmail-main-mode-map)
   (setq truncate-lines t))
 
-(defun gmail-main-view-real ()
+(defvar gmail-cache-threads nil)
+
+(defun gmail-main-revert ()
   (let ((buf (get-buffer-create gmail-main-buffer-name))
         (inhibit-read-only t))
     (with-current-buffer buf
       (erase-buffer)
-      (insert "Hello, Gmail!")
+      (apply 'insert (mapcar (lambda (json)
+                        (concat (cdr (assoc 'id json)) "\n"))
+                      (cdr (assoc 'messages gmail-messages-cache))))
       (gmail-main-mode))))
 
 (defun gmail-main-view ()
   "Create the Gmail main view, and switch to it."
-  (gmail-main-view-real)
+  (gmail-main-revert)
   (switch-to-buffer gmail-main-buffer-name)
   (goto-char (point-min)))

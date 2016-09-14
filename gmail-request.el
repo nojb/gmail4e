@@ -34,4 +34,29 @@
    :parser 'json-read
    :success (function*
              (lambda (&key data &allow-other-keys)
-               (pp data)))))
+               (pp data)
+               (setq gmail-cache-threads data)))))
+
+(defvar gmail-messages-cache nil)
+
+(defun gmail-messages-list ()
+  (request
+   "https://www.googleapis.com/gmail/v1/users/me/messages"
+   :type "GET"
+   :headers `(("Authorization" . ,(concat gmail-auth-token-type " " gmail-auth-access-token)))
+   :parser 'json-read
+   :success (function*
+             (lambda (&key data &allow-other-keys)
+               (pp data)
+               (setq gmail-messages-cache data)))))
+
+(defun gmail-messages-get (id)
+  (request
+   (concat "https://www.googleapis.com/gmail/v1/users/me/messages/" id)
+   :type "GET"
+   :headers `(("Authorization" . ,(concat gmail-auth-token-type " " gmail-auth-access-token)))
+   :parser 'json-read
+   :success (function*
+             (lambda (&key data &allow-other-keys)
+               (pp data)
+               (setq gmail-messages-cache data)))))
