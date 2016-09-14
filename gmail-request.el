@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(require 'gmail-auth)
+
 (defun gmail-request-threads-get ()
   (request
    "https://www.googleapis.com/gmail/v1/users/me/threads"
@@ -60,3 +62,5 @@
              (lambda (&key data &allow-other-keys)
                (pp data)
                (setq gmail-messages-cache data)))))
+
+(provide 'gmail-request)

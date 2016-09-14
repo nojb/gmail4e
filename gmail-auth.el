@@ -52,10 +52,7 @@
   (setq gmail-auth-refresh-token refresh-token)
   (setq gmail-auth-expires-in expires-in)
   (setq gmail-auth-token-type token-type)
-  (message "access-token: %s" access-token)
-  (message "refresh-token: %s" refresh-token)
-  (message "expires-in: %s" expires-in)
-  (message "token-type: %s" token-type))
+  (gmail-reload))
 
 (defun gmail-auth-request-token ()
   (request
@@ -69,7 +66,7 @@
    :parser 'json-read
    :success (function*
              (lambda (&key data &allow-other-keys)
-               (print data)
+               (pp data)
                (let ((access-token (cdr (assoc 'access_token data)))
                      (refresh-token (cdr (assoc 'refresh_token data)))
                      (expires-in (cdr (assoc 'expires_in data)))
@@ -82,18 +79,17 @@
 (defun gmail-auth-handler (httpcon)
   "Demonstration function"
   (progn
-    (print (elnode-http-params httpcon))
+    (pp (elnode-http-params httpcon))
     (let ((code (elnode-http-param httpcon "code")))
       (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
       (elnode-http-return httpcon "<html><b>HELLO!</b></html>")
-      ;; (elnode-stop gmail-auth-port)
       (if gmail-auth-code
+          (elnode-stop gmail-auth-port)
           (progn
             (setq gmail-auth-code code)
-            (gmail-auth-request-token))
-        (elnode-stop gmail-auth-port)))))
+            (gmail-auth-request-token))))))
 
-(defun gmail-auth-request-code (scopes login_hint)
+(defun gmail-auth-request-code ()
   (elnode-start 'gmail-auth-handler :port gmail-auth-port :host "localhost")
   (browse-url
    (concat
@@ -101,9 +97,12 @@
     (url-build-query-string
      `(("client_id" ,gmail-auth-client-id)
        ("prompt" "consent")
-       ("scope" ,(mapconcat 'identity scopes " "))
+       ("scope" ,(mapconcat 'identity gmail-auth-scopes " "))
        ("response_type" "code")
        ("redirect_uri" ,(format "http://127.0.0.1:%d" gmail-auth-port))
-       ("login_hint" ,login_hint))))))
+       ("login_hint" ,gmail-address))))))
 
-;; (gmail-auth-request-code '("https://www.googleapis.com/auth/gmail.readonly") user-mail-address)
+(defconst gmail-auth-scopes
+  '("https://www.googleapis.com/auth/gmail.readonly"))
+
+(provide 'gmail-auth)

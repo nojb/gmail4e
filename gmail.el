@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(require 'gmail-auth)
+(require 'gmail-request)
+
 (defconst gmail-main-buffer-name " *gmail*"
   "Name of the Gmail main buffer.")
 
@@ -52,8 +55,26 @@
                       (cdr (assoc 'messages gmail-messages-cache))))
       (gmail-main-mode))))
 
+(defun gmail-reload ()
+  (message "OK OK Reloading!"))
+
 (defun gmail-main-view ()
   "Create the Gmail main view, and switch to it."
   (gmail-main-revert)
   (switch-to-buffer gmail-main-buffer-name)
   (goto-char (point-min)))
+
+(defvar gmail-address nil
+  "Gmail address.")
+
+(defun gmail (email-address)
+  "Start a Gmail session."
+  (interactive
+   (list
+    (read-string "Enter email address: "
+                 (if (boundp 'user-mail-address) user-mail-address))))
+  (setq gmail-address email-address)
+  (gmail-main-view)
+  (gmail-auth-request-code))
+
+(provide 'gmail)
